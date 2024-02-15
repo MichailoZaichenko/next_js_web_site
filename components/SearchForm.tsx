@@ -1,10 +1,41 @@
 'use client'
 import Image from '@/node_modules/next/image'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {Input} from '@/components/ui/input'
+import { useSearchParams, useRouter, usePathname } from '@/node_modules/next/navigation'
+import { formUrlQuery } from '@/sanity/utils'
 
 const SearchForm = () => {
-  const [Search, setSearch] = useState('')
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const [search, setSearch] = useState('');
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      let newUrl = '';
+
+      if(search) {
+        newUrl = formUrlQuery({
+          params: searchParams.toString(),
+          key: 'query',
+          value: search
+        })
+      } else {
+        newUrl = formUrlQuery({
+          params: searchParams.toString(),
+          keysToRemove: ['query']
+        })
+      }
+      
+      router.push(newUrl, { scroll: false });
+    }, 300) 
+    // 300ms dalay before searching 
+  
+    return () => clearTimeout(delayDebounceFn)
+  }, [search])
+
   return (
     <form className='flex-center mx-auto mt-10 w-full sm:-mt-10 sm:px-5'>
         <label className='flex-center relative w-full max-w-3xl'>
@@ -19,7 +50,7 @@ const SearchForm = () => {
             !ring-0 !ring-offset-0 placeholder:text-white-800' 
             type='text' 
             placeholder='Search'
-            value={Search}
+            value={search}
             onChange={(e) => setSearch(e.target.value)} />
         </label>
     </form>
